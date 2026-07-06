@@ -10,9 +10,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/resume', require('./routes/resume'));
-app.use('/api/ai', require('./routes/ai'));
+app.use('/api/auth', require('./server/routes/auth'));
+app.use('/api/resume', require('./server/routes/resume'));
+app.use('/api/ai', require('./server/routes/ai'));
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
