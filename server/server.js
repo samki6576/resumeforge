@@ -20,9 +20,9 @@ app.use(express.json());
 const connectDB = async () => {
     try {
         await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/resumeforge');
-        console.log('✅ MongoDB Connected Successfully!');
+        console.log('MongoDB Connected Successfully!');
     } catch (error) {
-        console.error('❌ MongoDB Connection Error:', error.message);
+        console.error('MongoDB Connection Error:', error.message);
         process.exit(1);
     }
 };
@@ -45,5 +45,5 @@ app.get('/health', (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(🚀 Server running on port );
+    console.log('Server running on port ' + PORT);
 });
