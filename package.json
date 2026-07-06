@@ -1,0 +1,12 @@
+﻿{
+  "name": "resumeforge",
+  "version": "1.0.0",
+  "description": "AI Resume Builder",
+  "scripts": {
+    "start": "cd server && node server.js",
+    "build": "cd client && npm install && npm run build"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
