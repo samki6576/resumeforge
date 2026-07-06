@@ -1,12 +1,20 @@
-﻿const Groq = require('groq-sdk');
+﻿const express = require('express');
+const router = express.Router();
+const auth = require('../middleware/auth');
+const Groq = require('groq-sdk');
 
 // Initialize Groq client
-const groq = new Groq({
-    apiKey: process.env.GROQ_API_KEY,
-});
+let groq;
+try {
+    groq = new Groq({
+        apiKey: process.env.GROQ_API_KEY,
+    });
+} catch (error) {
+    console.error('Groq initialization error:', error.message);
+}
 
-// Generate bullet points with Groq
-exports.generateBulletPoints = async (req, res) => {
+// Generate bullet points
+router.post('/generate-bullets', auth, async (req, res) => {
     try {
         const { jobTitle, company, description } = req.body;
 
@@ -20,11 +28,11 @@ exports.generateBulletPoints = async (req, res) => {
         if (!process.env.GROQ_API_KEY) {
             return res.status(400).json({
                 success: false,
-                message: 'GROQ_API_KEY is not configured. Please add your API key.'
+                message: 'GROQ_API_KEY is not configured'
             });
         }
 
-        console.log('🤖 Generating bullet points for:', jobTitle, 'at', company);
+        console.log('Generating bullet points for:', jobTitle, 'at', company);
 
         const prompt = 'Generate 4-5 professional bullet points for a ' + jobTitle + ' at ' + company + '. Description: ' + description + '. Return ONLY a JSON array of strings.';
 
@@ -56,21 +64,21 @@ exports.generateBulletPoints = async (req, res) => {
             bulletPoints = [response];
         }
 
-        console.log('✅ Generated', bulletPoints.length, 'bullet points');
+        console.log('Generated', bulletPoints.length, 'bullet points');
         res.json({ success: true, bulletPoints });
 
     } catch (error) {
-        console.error('❌ AI Generation Error:', error);
+        console.error('AI Generation Error:', error);
         res.status(500).json({
             success: false,
             message: 'Failed to generate bullet points',
             error: error.message
         });
     }
-};
+});
 
-// Generate professional summary
-exports.generateSummary = async (req, res) => {
+// Generate summary
+router.post('/generate-summary', auth, async (req, res) => {
     try {
         const { experience, skills, goals } = req.body;
 
@@ -92,17 +100,17 @@ exports.generateSummary = async (req, res) => {
         res.json({ success: true, summary: completion.choices[0].message.content.trim() });
 
     } catch (error) {
-        console.error('❌ Summary Generation Error:', error);
+        console.error('Summary Generation Error:', error);
         res.status(500).json({ success: false, message: error.message });
     }
-};
+});
 
 // Suggest skills
-exports.suggestSkills = async (req, res) => {
+router.post('/suggest-skills', auth, async (req, res) => {
     try {
         const { jobTitle } = req.body;
 
-        const prompt = 'Suggest 10-15 relevant skills for a ' + jobTitle + ' position.\nReturn as JSON object with categories. Example: {"Frontend": ["React", "CSS"], "Backend": ["Node.js"], "Soft Skills": ["Leadership"]}';
+        const prompt = 'Suggest 10-15 relevant skills for a ' + jobTitle + ' position.\nReturn as JSON object with categories.';
 
         const completion = await groq.chat.completions.create({
             model: process.env.LLM_MODEL || 'llama-3.3-70b-versatile',
@@ -128,7 +136,9 @@ exports.suggestSkills = async (req, res) => {
         res.json({ success: true, skills });
 
     } catch (error) {
-        console.error('❌ Skills Suggestion Error:', error);
+        console.error('Skills Suggestion Error:', error);
         res.status(500).json({ success: false, message: error.message });
     }
-};
+});
+
+module.exports = router;

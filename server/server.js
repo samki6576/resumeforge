@@ -20,7 +20,7 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/resumefor
     .then(() => console.log('MongoDB Connected'))
     .catch(err => console.log('MongoDB Error:', err.message));
 
-// Routes - Import them directly
+// Routes - Import as functions
 const authRoutes = require('./routes/auth');
 const resumeRoutes = require('./routes/resume');
 const aiRoutes = require('./routes/ai');

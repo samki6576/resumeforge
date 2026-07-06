@@ -44,7 +44,12 @@ router.post('/login', async (req, res) => {
 
 // Get current user
 router.get('/me', auth, async (req, res) => {
-    res.json(req.user);
+    try {
+        res.json(req.user);
+    } catch (error) {
+        console.error('Get user error:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
 });
 
 module.exports = router;
