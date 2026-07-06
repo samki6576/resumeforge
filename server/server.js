@@ -8,39 +8,42 @@ dotenv.config();
 
 const app = express();
 
-// CORS configuration
+// Middleware
 app.use(cors({
     origin: '*',
-    credentials: true,
-    optionsSuccessStatus: 200
+    credentials: true
 }));
 app.use(express.json());
 
 // MongoDB Connection
-const connectDB = async () => {
-    try {
-        await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/resumeforge');
-        console.log('MongoDB Connected Successfully!');
-    } catch (error) {
-        console.error('MongoDB Connection Error:', error.message);
-        process.exit(1);
-    }
-};
-connectDB();
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/resumeforge')
+    .then(() => console.log('MongoDB Connected'))
+    .catch(err => console.log('MongoDB Error:', err.message));
 
-// Routes
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/resume', require('./routes/resume'));
-app.use('/api/ai', require('./routes/ai'));
+// Routes - Import them directly
+const authRoutes = require('./routes/auth');
+const resumeRoutes = require('./routes/resume');
+const aiRoutes = require('./routes/ai');
+
+// Use routes
+app.use('/api/auth', authRoutes);
+app.use('/api/resume', resumeRoutes);
+app.use('/api/ai', aiRoutes);
 
 // Test route
 app.get('/api/test', (req, res) => {
     res.json({ message: 'API is working!' });
 });
 
-// Health check route for Pxxl
+// Health check
 app.get('/health', (req, res) => {
     res.status(200).json({ status: 'OK', uptime: process.uptime() });
+});
+
+// Error handling
+app.use((err, req, res, next) => {
+    console.error('Error:', err.message);
+    res.status(500).json({ message: 'Something went wrong!' });
 });
 
 const PORT = process.env.PORT || 5000;
