@@ -35,9 +35,14 @@ app.get('/api/test', (req, res) => {
     res.json({ message: 'API is working!' });
 });
 
-// Health check
+// Health check - THIS IS IMPORTANT FOR PXXL
 app.get('/health', (req, res) => {
     res.status(200).json({ status: 'OK', uptime: process.uptime() });
+});
+
+// Root route
+app.get('/', (req, res) => {
+    res.json({ message: 'ResumeForge API is running!' });
 });
 
 // Error handling
@@ -46,7 +51,11 @@ app.use((err, req, res, next) => {
     res.status(500).json({ message: 'Something went wrong!' });
 });
 
+// Get port from environment - Pxxl provides this
 const PORT = process.env.PORT || 5000;
+
+// Start server - Bind to 0.0.0.0 to accept all connections
 app.listen(PORT, '0.0.0.0', () => {
     console.log('Server running on port ' + PORT);
+    console.log('Health check: http://0.0.0.0:' + PORT + '/health');
 });
