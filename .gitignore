@@ -4,3 +4,6 @@
 build/
 dist/
 *.log
+
+# Local Netlify folder
+.netlify
