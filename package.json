@@ -2,10 +2,6 @@
   "name": "resumeforge-backend",
   "version": "1.0.0",
   "description": "AI Resume Builder Backend",
-  "scripts": {
-    "start": "cd server && node server.js",
-    "postinstall": "cd server && npm install"
-  },
   "dependencies": {
     "express": "^4.18.2",
     "cors": "^2.8.5",
