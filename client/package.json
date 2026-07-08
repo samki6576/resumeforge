@@ -19,7 +19,8 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "postinstall": "node -e \"try{require('fs').unlinkSync('node_modules/html2pdf.js/dist/es6-promise.map')}catch(e){}\""
   },
   "browserslist": {
     "production": [
