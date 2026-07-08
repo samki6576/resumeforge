@@ -1,0 +1,9 @@
+﻿{
+  "build": {
+    "command": "cd server && npm install",
+    "publish": "server"
+  },
+  "start": {
+    "command": "cd server && node server.js"
+  }
+}
