@@ -1,0 +1,6 @@
+﻿client/
+public/
+src/
+*.md
+.git/
+*.log
