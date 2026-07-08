@@ -12,7 +12,8 @@
     "react-hot-toast": "^2.4.0",
     "@heroicons/react": "^2.0.18",
     "html2pdf.js": "^0.10.1",
-    "web-vitals": "^3.3.0"
+    "web-vitals": "^3.3.0",
+    "ajv": "6.12.6"
   },
   "scripts": {
     "start": "react-scripts start",
