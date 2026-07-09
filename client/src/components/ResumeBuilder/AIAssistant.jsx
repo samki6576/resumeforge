@@ -10,10 +10,9 @@ const AIAssistant = ({ onBulletPointsGenerated }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [generatedBullets, setGeneratedBullets] = useState([]);
 
-  const fallbackApiUrl = 'https://resumeforg.pxxl.run';
   const apiUrl = (typeof window !== 'undefined' && window.location.hostname === 'localhost')
     ? 'http://localhost:5000'
-    : fallbackApiUrl;
+    : '';
 
   const handleGenerate = async () => {
     if (!jobTitle || !company || !description) {

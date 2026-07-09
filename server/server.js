@@ -1,4 +1,5 @@
 ﻿const express = require('express');
+const fs = require('fs');
 const path = require('path');
 const cors = require('cors');
 const mongoose = require('mongoose');
@@ -50,6 +51,14 @@ if (!process.env.MONGODB_URI) {
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/resume', require('./routes/resume'));
 app.use('/api/ai', require('./routes/ai'));
+
+const clientBuildPath = path.join(__dirname, '..', 'client', 'build');
+if (fs.existsSync(clientBuildPath)) {
+  app.use(express.static(clientBuildPath));
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(clientBuildPath, 'index.html'));
+  });
+}
 
 app.get('/debug-env', (req, res) => {
     res.json({

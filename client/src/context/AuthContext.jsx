@@ -10,10 +10,9 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState(localStorage.getItem('token'));
 
-  const fallbackApiUrl = 'https://resumeforg.pxxl.run';
   const apiUrl = (typeof window !== 'undefined' && window.location.hostname === 'localhost')
     ? 'http://localhost:5000'
-    : fallbackApiUrl;
+    : '';
 
   if (token) {
     axios.defaults.headers.common['x-auth-token'] = token;

@@ -1,20 +1,24 @@
-# Use a small Node base image
-FROM node:26-alpine
+# Stage 1: build the React frontend
+FROM node:26-alpine AS client-build
+WORKDIR /app/client
+COPY client/package*.json ./
+RUN npm install
+COPY client/ ./
+RUN npm run build
 
-# Set working directory
-WORKDIR /usr/src/app
-
-# Copy only backend package files first to leverage Docker layer caching
+# Stage 2: install backend dependencies
+FROM node:26-alpine AS backend-build
+WORKDIR /app/server
 COPY server/package*.json ./
-
-# Install backend dependencies
 RUN npm install --production
-
-# Copy backend source code
 COPY server/ ./
 
-# Expose the backend port
-EXPOSE 5000
+# Stage 3: final image with built client and backend
+FROM node:26-alpine AS runtime
+WORKDIR /app
+COPY --from=client-build /app/client/build ./client/build
+COPY --from=backend-build /app/server ./server
 
-# Run the backend server
-CMD ["node", "server.js"]
+EXPOSE 5000
+ENV NODE_ENV=production
+CMD ["node", "server/server.js"]
