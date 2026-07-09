@@ -13,6 +13,7 @@ const allowedOrigins = [
     process.env.FRONTEND_URL,
     process.env.REACT_APP_API_URL,
     'https://resumeforge-h5yd.vercel.app',
+    'https://resumeforge-h.vercel.app',
     'https://resumeforg.pxxl.run',
     'https://resumeforg.pxxl.app',
     'https://resumeforge.pxxl.run',
