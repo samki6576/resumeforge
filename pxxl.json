@@ -1,9 +1,9 @@
 ﻿{
   "build": {
-    "command": "npm install && cd server && npm install",
-    "publish": "server"
+    "command": "npm install && npm --prefix server install",
+    "publish": "."
   },
   "start": {
-    "command": "cd server && npm start"
+    "command": "node server.js"
   }
 }
