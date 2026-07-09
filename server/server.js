@@ -7,9 +7,22 @@ dotenv.config();
 
 const app = express();
 
-// CORS - Allow your Vercel frontend
+const allowedOrigins = [
+    process.env.FRONTEND_URL,
+    process.env.REACT_APP_API_URL,
+    'https://resumeforge-h5yd.vercel.app',
+    'http://localhost:3000',
+    'http://127.0.0.1:3000'
+].filter(Boolean);
+
 app.use(cors({
-    origin: 'https://resumeforge-h5yd.vercel.app',
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin) || /^https:\/\/.*\.vercel\.app$/i.test(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token']
@@ -17,17 +30,16 @@ app.use(cors({
 
 app.use(express.json());
 
-// MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI)
+mongoose.connect(process.env.MONGODB_URI, {
+    serverSelectionTimeoutMS: 10000
+})
     .then(() => console.log('MongoDB Connected'))
     .catch(err => console.log('MongoDB Error:', err.message));
 
-// Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/resume', require('./routes/resume'));
 app.use('/api/ai', require('./routes/ai'));
 
-// Health check
 app.get('/health', (req, res) => {
     res.status(200).json({ status: 'OK', uptime: process.uptime() });
 });
@@ -40,7 +52,6 @@ app.get('/', (req, res) => {
     res.json({ message: 'ResumeForge API is running!' });
 });
 
-// Error handling
 app.use((err, req, res, next) => {
     console.error('Error:', err.message);
     res.status(500).json({ message: 'Something went wrong!' });

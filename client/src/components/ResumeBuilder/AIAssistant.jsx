@@ -10,6 +10,10 @@ const AIAssistant = ({ onBulletPointsGenerated }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [generatedBullets, setGeneratedBullets] = useState([]);
 
+  const apiUrl = process.env.REACT_APP_API_URL || (typeof window !== 'undefined' && window.location.hostname === 'localhost'
+    ? 'http://localhost:5000'
+    : 'https://resumeforge.pxxl.app');
+
   const handleGenerate = async () => {
     if (!jobTitle || !company || !description) {
       toast.error('Please fill in all fields');
@@ -18,7 +22,7 @@ const AIAssistant = ({ onBulletPointsGenerated }) => {
 
     setIsLoading(true);
     try {
-      const response = await axios.post('http://localhost:5000/api/ai/generate-bullets', {
+      const response = await axios.post(`${apiUrl}/api/ai/generate-bullets`, {
         jobTitle,
         company,
         description
