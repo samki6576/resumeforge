@@ -7,28 +7,12 @@ dotenv.config();
 
 const app = express();
 
-// CORS Configuration - Allow specific origins
-const allowedOrigins = [
-  'https://resumeforge-xrn1.vercel.app',
-  'https://resumeforge.vercel.app',
-  'http://localhost:3000', // For local development
-  'https://resumeforge.pxxl.run' // Self
-];
-
+// CORS - Allow your Vercel frontend
 app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      console.log('Blocked origin:', origin);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token']
+    origin: 'https://resumeforge-h5yd.vercel.app',
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token']
 }));
 
 app.use(express.json());
@@ -43,17 +27,15 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/resume', require('./routes/resume'));
 app.use('/api/ai', require('./routes/ai'));
 
-// Test route
-app.get('/api/test', (req, res) => {
-    res.json({ message: 'API is working!' });
-});
-
 // Health check
 app.get('/health', (req, res) => {
     res.status(200).json({ status: 'OK', uptime: process.uptime() });
 });
 
-// Root route
+app.get('/api/test', (req, res) => {
+    res.json({ message: 'API is working!' });
+});
+
 app.get('/', (req, res) => {
     res.json({ message: 'ResumeForge API is running!' });
 });
