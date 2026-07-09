@@ -10,9 +10,10 @@ const AIAssistant = ({ onBulletPointsGenerated }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [generatedBullets, setGeneratedBullets] = useState([]);
 
-  const apiUrl = process.env.REACT_APP_API_URL || (typeof window !== 'undefined' && window.location.hostname === 'localhost'
-    ? 'http://localhost:5000'
-    : 'https://resumeforg.pxxl.run');
+  const apiUrl = (process.env.REACT_APP_API_URL && process.env.REACT_APP_API_URL.trim())
+    || (typeof window !== 'undefined' && window.location.hostname === 'localhost'
+      ? 'http://localhost:5000'
+      : 'https://resumeforg.pxxl.run');
 
   const handleGenerate = async () => {
     if (!jobTitle || !company || !description) {
