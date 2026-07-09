@@ -13,13 +13,17 @@ const allowedOrigins = [
     process.env.FRONTEND_URL,
     process.env.REACT_APP_API_URL,
     'https://resumeforge-h5yd.vercel.app',
+    'https://resumeforg.pxxl.run',
+    'https://resumeforg.pxxl.app',
+    'https://resumeforge.pxxl.run',
+    'https://resumeforge.pxxl.app',
     'http://localhost:3000',
     'http://127.0.0.1:3000'
 ].filter(Boolean);
 
 app.use(cors({
     origin: (origin, callback) => {
-        if (!origin || allowedOrigins.includes(origin) || /^https:\/\/.*\.vercel\.app$/i.test(origin)) {
+        if (!origin || allowedOrigins.includes(origin) || /^https:\/\/.*\.vercel\.app$/i.test(origin) || /^https:\/\/.*\.(pxxl\.run|pxxl\.app)$/i.test(origin)) {
             callback(null, true);
         } else {
             callback(new Error('Not allowed by CORS'));

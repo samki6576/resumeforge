@@ -12,7 +12,7 @@ export const AuthProvider = ({ children }) => {
 
   const apiUrl = process.env.REACT_APP_API_URL || (typeof window !== 'undefined' && window.location.hostname === 'localhost'
     ? 'http://localhost:5000'
-    : 'https://resumeforge.pxxl.app');
+    : 'https://resumeforg.pxxl.run');
 
   if (token) {
     axios.defaults.headers.common['x-auth-token'] = token;

@@ -12,7 +12,7 @@ const AIAssistant = ({ onBulletPointsGenerated }) => {
 
   const apiUrl = process.env.REACT_APP_API_URL || (typeof window !== 'undefined' && window.location.hostname === 'localhost'
     ? 'http://localhost:5000'
-    : 'https://resumeforge.pxxl.app');
+    : 'https://resumeforg.pxxl.run');
 
   const handleGenerate = async () => {
     if (!jobTitle || !company || !description) {
