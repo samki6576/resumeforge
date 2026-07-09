@@ -10,10 +10,12 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState(localStorage.getItem('token'));
 
-  const apiUrl = (process.env.REACT_APP_API_URL && process.env.REACT_APP_API_URL.trim())
-    || (typeof window !== 'undefined' && window.location.hostname === 'localhost'
-      ? 'http://localhost:5000'
-      : 'https://resumeforg.pxxl.run');
+  const fallbackApiUrl = 'https://resumeforg.pxxl.run';
+  const apiUrl = (typeof window !== 'undefined' && window.location.hostname === 'localhost')
+    ? 'http://localhost:5000'
+    : ((process.env.REACT_APP_API_URL && process.env.REACT_APP_API_URL.trim() && !process.env.REACT_APP_API_URL.includes('resumeforge.pxxl.app'))
+      ? process.env.REACT_APP_API_URL.trim()
+      : fallbackApiUrl);
 
   if (token) {
     axios.defaults.headers.common['x-auth-token'] = token;
