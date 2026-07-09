@@ -1,0 +1,14 @@
+node_modules
+npm-debug.log
+Dockerfile
+.dockerignore
+.git
+.gitignore
+.pxxlignore
+.vercelignore
+client
+public
+README.md
+*.md
+.env
+server/.env
