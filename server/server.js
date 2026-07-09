@@ -57,7 +57,7 @@ app.use((err, req, res, next) => {
     res.status(500).json({ message: 'Something went wrong!' });
 });
 
-const PORT = Number(process.env.PORT || process.env.PXXL_PORT || 3000);
+const PORT = Number(process.env.PORT || process.env.PXXL_PORT || 5000);
 app.listen(PORT, '0.0.0.0', () => {
     console.log('Server running on port ' + PORT);
 });
