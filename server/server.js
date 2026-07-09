@@ -50,6 +50,15 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/resume', require('./routes/resume'));
 app.use('/api/ai', require('./routes/ai'));
 
+app.get('/debug-env', (req, res) => {
+    res.json({
+        hasMongo: !!process.env.MONGODB_URI,
+        hasJwt: !!process.env.JWT_SECRET,
+        hasGroq: !!process.env.GROQ_API_KEY,
+        port: process.env.PORT || process.env.PXXL_PORT || 5000
+    });
+});
+
 app.get('/health', (req, res) => {
     res.status(200).json({ status: 'OK', uptime: process.uptime() });
 });
