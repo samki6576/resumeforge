@@ -1,9 +1,11 @@
 ﻿const express = require('express');
+const path = require('path');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 
-dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, '.env') });
+dotenv.config({ path: path.resolve(__dirname, '..', '.env') });
 
 const app = express();
 
@@ -30,11 +32,15 @@ app.use(cors({
 
 app.use(express.json());
 
-mongoose.connect(process.env.MONGODB_URI, {
-    serverSelectionTimeoutMS: 10000
-})
-    .then(() => console.log('MongoDB Connected'))
-    .catch(err => console.log('MongoDB Error:', err.message));
+if (!process.env.MONGODB_URI) {
+    console.error('MONGODB_URI is not set. Please add it to your environment or .env file.');
+} else {
+    mongoose.connect(process.env.MONGODB_URI, {
+        serverSelectionTimeoutMS: 10000
+    })
+        .then(() => console.log('MongoDB Connected'))
+        .catch(err => console.log('MongoDB Error:', err.message));
+}
 
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/resume', require('./routes/resume'));
