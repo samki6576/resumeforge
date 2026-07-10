@@ -16,6 +16,17 @@ app.use(cors({
 }));
 app.use(express.json());
 
+app.options('*', cors());
+app.use((req, res, next) => {
+    if (req.method === 'OPTIONS') {
+        res.header('Access-Control-Allow-Origin', '*');
+        res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+        res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization,x-auth-token');
+        return res.sendStatus(200);
+    }
+    next();
+});
+
 if (process.env.MONGODB_URI) {
     mongoose.connect(process.env.MONGODB_URI)
         .then(() => console.log('MongoDB Connected'))
