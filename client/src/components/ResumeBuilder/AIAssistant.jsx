@@ -10,9 +10,7 @@ const AIAssistant = ({ onBulletPointsGenerated }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [generatedBullets, setGeneratedBullets] = useState([]);
 
-  const apiUrl = (typeof window !== 'undefined' && window.location.hostname === 'localhost')
-    ? 'http://localhost:5000'
-    : '';
+  const apiUrl = process.env.REACT_APP_API_URL || '';
 
   const handleGenerate = async () => {
     if (!jobTitle || !company || !description) {

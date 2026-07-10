@@ -10,9 +10,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState(localStorage.getItem('token'));
 
-  const apiUrl = (typeof window !== 'undefined' && window.location.hostname === 'localhost')
-    ? 'http://localhost:5000'
-    : '';
+  const apiUrl = process.env.REACT_APP_API_URL || '';
 
   if (token) {
     axios.defaults.headers.common['x-auth-token'] = token;
