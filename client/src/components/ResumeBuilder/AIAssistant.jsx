@@ -10,7 +10,8 @@ const AIAssistant = ({ onBulletPointsGenerated }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [generatedBullets, setGeneratedBullets] = useState([]);
 
-  const apiUrl = process.env.REACT_APP_API_URL || '';
+  const rawApiUrl = process.env.REACT_APP_API_URL || '';
+  const apiUrl = rawApiUrl.includes('pxxl.run') ? '' : rawApiUrl || '';
 
   const handleGenerate = async () => {
     if (!jobTitle || !company || !description) {
