@@ -55,9 +55,6 @@ app.use('/api/ai', require('./routes/ai'));
 const clientBuildPath = path.join(__dirname, '..', 'client', 'build');
 if (fs.existsSync(clientBuildPath)) {
   app.use(express.static(clientBuildPath));
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(clientBuildPath, 'index.html'));
-  });
 }
 
 app.get('/debug-env', (req, res) => {
@@ -81,14 +78,25 @@ app.get('/', (req, res) => {
     res.json({ message: 'ResumeForge API is running!' });
 });
 
+if (fs.existsSync(clientBuildPath)) {
+    app.get('*', (req, res) => {
+        if (req.path.startsWith('/api/')) {
+            return res.status(404).json({ message: 'API route not found' });
+        }
+        res.sendFile(path.join(clientBuildPath, 'index.html'));
+    });
+}
+
 app.use((err, req, res, next) => {
     console.error('Error:', err.message);
     res.status(500).json({ message: 'Something went wrong!' });
 });
 
-const portFromEnv = Number(process.env.PORT || process.env.PXXL_PORT || 3000);
-app.listen(portFromEnv, '0.0.0.0', () => {
-    console.log('Server running on port ' + portFromEnv);
-});
+if (require.main === module) {
+    const portFromEnv = Number(process.env.PORT || process.env.PXXL_PORT || 3000);
+    app.listen(portFromEnv, '0.0.0.0', () => {
+        console.log('Server running on port ' + portFromEnv);
+    });
+}
 
 module.exports = app;
