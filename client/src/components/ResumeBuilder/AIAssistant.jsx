@@ -11,7 +11,8 @@ const AIAssistant = ({ onBulletPointsGenerated }) => {
   const [generatedBullets, setGeneratedBullets] = useState([]);
 
   const rawApiUrl = process.env.REACT_APP_API_URL || '';
-  const apiUrl = rawApiUrl.includes('pxxl.run') ? '' : rawApiUrl || '';
+  const unsafeHostPattern = /pxxl\.(?:run|app)|vercel\.app/i;
+  const apiUrl = (!rawApiUrl || unsafeHostPattern.test(rawApiUrl)) ? '' : rawApiUrl;
 
   const handleGenerate = async () => {
     if (!jobTitle || !company || !description) {

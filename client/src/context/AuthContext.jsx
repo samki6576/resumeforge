@@ -11,7 +11,8 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('token'));
 
   const rawApiUrl = process.env.REACT_APP_API_URL || '';
-  const apiUrl = rawApiUrl.includes('pxxl.run') ? '' : rawApiUrl || '';
+  const unsafeHostPattern = /pxxl\.(?:run|app)|vercel\.app/i;
+  const apiUrl = (!rawApiUrl || unsafeHostPattern.test(rawApiUrl)) ? '' : rawApiUrl;
 
   if (token) {
     axios.defaults.headers.common['x-auth-token'] = token;
