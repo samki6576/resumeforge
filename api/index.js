@@ -10,18 +10,26 @@ dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 const app = express();
 
-app.use(cors({
-    origin: '*',
-    credentials: true
-}));
+const corsOptions = {
+    origin: function (origin, callback) {
+        // reflect the request origin — useful when requests come from different hosts
+        callback(null, true);
+    },
+    credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token']
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
-app.options('*', cors());
+app.options('*', cors(corsOptions));
+// Ensure preflight responses include credentials and allowed headers
 app.use((req, res, next) => {
     if (req.method === 'OPTIONS') {
-        res.header('Access-Control-Allow-Origin', '*');
+        res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
         res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
-        res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization,x-auth-token');
+        res.header('Access-Control-Allow-Headers', req.header('access-control-request-headers') || 'Content-Type,Authorization,x-auth-token');
+        res.header('Access-Control-Allow-Credentials', 'true');
         return res.sendStatus(200);
     }
     next();
