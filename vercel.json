@@ -1,10 +1,6 @@
-{
+﻿{
   "version": 2,
   "builds": [
-    {
-      "src": "api/index.js",
-      "use": "@vercel/node"
-    },
     {
       "src": "api/auth/register.js",
       "use": "@vercel/node"
@@ -14,10 +10,14 @@
       "use": "@vercel/node"
     },
     {
-      "src": "client/package.json",
+      "src": "api/index.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "client/**",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "build"
+        "distDir": "client/build"
       }
     }
   ],
@@ -35,12 +35,8 @@
       "dest": "/api/index.js"
     },
     {
-      "src": "/health",
-      "dest": "/api/index.js"
-    },
-    {
       "src": "/(.*)",
-      "dest": "/client/build/$1"
+      "dest": "/client/build/"
     }
   ]
 }

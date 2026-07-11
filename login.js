@@ -1,8 +1,5 @@
 ﻿const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-
-// Import User model (adjust path as needed)
 const User = require('../../server/models/User');
 
 module.exports = async (req, res) => {
@@ -11,42 +8,38 @@ module.exports = async (req, res) => {
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-auth-token');
 
-    // Handle preflight
     if (req.method === 'OPTIONS') {
         return res.status(200).end();
     }
 
-    // Only POST allowed
     if (req.method !== 'POST') {
         return res.status(405).json({ message: 'Method not allowed' });
     }
 
     try {
-        const { name, email, password } = req.body;
+        const { email, password } = req.body;
 
-        // Validate
-        if (!name || !email || !password) {
-            return res.status(400).json({ message: 'All fields are required' });
+        if (!email || !password) {
+            return res.status(400).json({ message: 'Email and password required' });
         }
 
-        // Check if user exists
-        let user = await User.findOne({ email });
-        if (user) {
-            return res.status(400).json({ message: 'User already exists' });
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(400).json({ message: 'Invalid credentials' });
         }
 
-        // Create user
-        user = new User({ name, email, password });
-        await user.save();
+        const isMatch = await user.matchPassword(password);
+        if (!isMatch) {
+            return res.status(400).json({ message: 'Invalid credentials' });
+        }
 
-        // Generate JWT
         const token = jwt.sign(
             { id: user._id },
             process.env.JWT_SECRET,
             { expiresIn: '7d' }
         );
 
-        res.status(201).json({
+        res.json({
             token,
             user: {
                 id: user._id,
@@ -56,7 +49,7 @@ module.exports = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Register error:', error);
+        console.error('Login error:', error);
         res.status(500).json({ message: 'Server error' });
     }
 };
