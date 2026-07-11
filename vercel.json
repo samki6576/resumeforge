@@ -2,6 +2,10 @@
   "version": 2,
   "builds": [
     {
+      "src": "api/test.js",
+      "use": "@vercel/node"
+    },
+    {
       "src": "api/auth/register.js",
       "use": "@vercel/node"
     },
@@ -18,6 +22,10 @@
     }
   ],
   "routes": [
+    {
+      "src": "/api/test",
+      "dest": "/api/test.js"
+    },
     {
       "src": "/api/auth/register",
       "dest": "/api/auth/register.js"
