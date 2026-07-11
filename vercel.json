@@ -6,6 +6,14 @@
       "use": "@vercel/node"
     },
     {
+      "src": "api/auth/register.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/auth/login.js",
+      "use": "@vercel/node"
+    },
+    {
       "src": "client/package.json",
       "use": "@vercel/static-build",
       "config": {
@@ -14,6 +22,14 @@
     }
   ],
   "routes": [
+    {
+      "src": "/api/auth/register",
+      "dest": "/api/auth/register.js"
+    },
+    {
+      "src": "/api/auth/login",
+      "dest": "/api/auth/login.js"
+    },
     {
       "src": "/api/(.*)",
       "dest": "/api/index.js"
