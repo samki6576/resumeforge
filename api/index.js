@@ -19,9 +19,10 @@ mongoose.connect(process.env.MONGODB_URI)
     .catch(err => console.log('MongoDB Error:', err.message));
 
 // ============ DIRECT AUTH HANDLERS ============
-// Register endpoint - DIRECT HANDLER
+// Register endpoint
 app.post('/api/auth/register', async (req, res) => {
     try {
+        console.log('Register request received');
         const { name, email, password } = req.body;
         
         if (!name || !email || !password) {
@@ -40,19 +41,21 @@ app.post('/api/auth/register', async (req, res) => {
         const jwt = require('jsonwebtoken');
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
+        console.log('User registered successfully:', email);
         res.status(201).json({
             token,
             user: { id: user._id, name, email }
         });
     } catch (error) {
         console.error('Register error:', error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: 'Server error: ' + error.message });
     }
 });
 
-// Login endpoint - DIRECT HANDLER
+// Login endpoint
 app.post('/api/auth/login', async (req, res) => {
     try {
+        console.log('Login request received');
         const { email, password } = req.body;
         
         if (!email || !password) {
