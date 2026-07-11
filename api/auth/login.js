@@ -1,88 +1,30 @@
-const path = require('path');
-const dotenv = require('dotenv');
-const jwt = require('jsonwebtoken');
-const mongoose = require('mongoose');
+﻿const jwt = require('jsonwebtoken');
 const User = require('../../server/models/User');
 
-dotenv.config({ path: path.resolve(__dirname, '../../server/.env') });
-dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+module.exports = async (req, res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-auth-token');
 
-async function readJsonBody(req) {
-  if (req.body) return req.body;
+    if (req.method === 'OPTIONS') return res.status(200).end();
+    if (req.method !== 'POST') return res.status(405).json({ message: 'Method not allowed' });
 
-  const chunks = [];
-  for await (const chunk of req) {
-    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-  }
+    try {
+        const { email, password } = req.body;
+        if (!email || !password) {
+            return res.status(400).json({ message: 'Email and password required' });
+        }
 
-  if (!chunks.length) return {};
+        const user = await User.findOne({ email });
+        if (!user) return res.status(400).json({ message: 'Invalid credentials' });
 
-  const raw = Buffer.concat(chunks).toString('utf8');
-  if (!raw) return {};
+        const isMatch = await user.matchPassword(password);
+        if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
 
-  try {
-    return JSON.parse(raw);
-  } catch {
-    return { raw };
-  }
-}
-
-async function ensureDbConnection() {
-  if (!process.env.MONGODB_URI) {
-    throw new Error('MONGODB_URI is not configured');
-  }
-
-  if (mongoose.connection.readyState === 0) {
-    await mongoose.connect(process.env.MONGODB_URI, { serverSelectionTimeoutMS: 10000 });
-  }
-}
-
-module.exports = async function handler(req, res) {
-  if (req.method !== 'POST') {
-    res.statusCode = 405;
-    res.setHeader('Allow', 'POST');
-    res.setHeader('Content-Type', 'application/json');
-    return res.end(JSON.stringify({ message: 'Method not allowed' }));
-  }
-
-  try {
-    const body = await readJsonBody(req);
-    const { email, password } = body;
-
-    if (!email || !password) {
-      res.statusCode = 400;
-      res.setHeader('Content-Type', 'application/json');
-      return res.end(JSON.stringify({ message: 'Please provide email and password' }));
+        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+        res.json({ token, user: { id: user._id, name, email } });
+    } catch (error) {
+        console.error('Login error:', error);
+        res.status(500).json({ message: 'Server error' });
     }
-
-    await ensureDbConnection();
-
-    const user = await User.findOne({ email });
-    if (!user) {
-      res.statusCode = 400;
-      res.setHeader('Content-Type', 'application/json');
-      return res.end(JSON.stringify({ message: 'Invalid credentials' }));
-    }
-
-    const isMatch = await user.matchPassword(password);
-    if (!isMatch) {
-      res.statusCode = 400;
-      res.setHeader('Content-Type', 'application/json');
-      return res.end(JSON.stringify({ message: 'Invalid credentials' }));
-    }
-
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-
-    res.statusCode = 200;
-    res.setHeader('Content-Type', 'application/json');
-    return res.end(JSON.stringify({ token, user: { id: user._id, name: user.name, email } }));
-  } catch (error) {
-    console.error('Login error:', error);
-    res.statusCode = error.message === 'MONGODB_URI is not configured' ? 503 : 500;
-    res.setHeader('Content-Type', 'application/json');
-    return res.end(JSON.stringify({ message: 'Server error' }));
-  }
 };
-
-module.exports.default = module.exports;
-module.exports.handler = module.exports;
