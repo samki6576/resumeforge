@@ -1,67 +1,54 @@
 ﻿const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
-const dotenv = require('dotenv');
-const path = require('path');
-const serverless = require('serverless-http');
-
-dotenv.config({ path: path.resolve(__dirname, '../server/.env') });
-dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 const app = express();
 
-const corsOptions = {
-    origin: function (origin, callback) {
-        // reflect the request origin — useful when requests come from different hosts
-        callback(null, true);
-    },
+// CORS
+app.use(cors({
+    origin: '*',
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token']
-};
+}));
 
-app.use(cors(corsOptions));
 app.use(express.json());
 
-app.options('*', cors(corsOptions));
-// Ensure preflight responses include credentials and allowed headers
+// MongoDB Connection
+mongoose.connect(process.env.MONGODB_URI)
+    .then(() => console.log('MongoDB Connected'))
+    .catch(err => console.log('MongoDB Error:', err.message));
+
+// Log all requests
 app.use((req, res, next) => {
-    if (req.method === 'OPTIONS') {
-        res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
-        res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
-        res.header('Access-Control-Allow-Headers', req.header('access-control-request-headers') || 'Content-Type,Authorization,x-auth-token');
-        res.header('Access-Control-Allow-Credentials', 'true');
-        return res.sendStatus(200);
-    }
+    console.log('Request:', req.method, req.path);
     next();
 });
 
-if (process.env.MONGODB_URI) {
-    mongoose.connect(process.env.MONGODB_URI)
-        .then(() => console.log('MongoDB Connected'))
-        .catch(err => console.log('MongoDB Error:', err.message));
-}
-
+// Routes
 app.use('/api/auth', require('../server/routes/auth'));
 app.use('/api/resume', require('../server/routes/resume'));
 app.use('/api/ai', require('../server/routes/ai'));
 
+// Test route
 app.get('/api/test', (req, res) => {
-    res.json({ message: 'API is working!' });
+    res.json({ message: 'API is working!', method: req.method });
 });
 
+// Health
 app.get('/health', (req, res) => {
-    res.status(200).json({ status: 'OK', uptime: process.uptime() });
+    res.status(200).json({ status: 'OK' });
 });
 
+// Root
 app.get('/', (req, res) => {
-    res.json({ message: 'ResumeForge API is running on Vercel!' });
+    res.json({ message: 'ResumeForge API on Vercel!' });
 });
 
+// Error handling
 app.use((err, req, res, next) => {
     console.error('Error:', err.message);
     res.status(500).json({ message: 'Something went wrong!' });
 });
 
-const handler = serverless(app);
-module.exports = handler;
-module.exports.app = app;
+module.exports = app;
