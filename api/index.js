@@ -4,7 +4,13 @@ const mongoose = require('mongoose');
 
 const app = express();
 
-app.use(cors({ origin: '*', credentials: true }));
+app.use(cors({
+    origin: '*',
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token']
+}));
+
 app.use(express.json());
 
 // MongoDB Connection
@@ -30,7 +36,10 @@ app.post('/api/auth/register', async (req, res) => {
         const jwt = require('jsonwebtoken');
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
-        res.status(201).json({ token, user: { id: user._id, name, email } });
+        res.status(201).json({
+            token,
+            user: { id: user._id, name, email }
+        });
     } catch (error) {
         console.error('Register error:', error);
         res.status(500).json({ message: 'Server error' });
@@ -54,7 +63,10 @@ app.post('/api/auth/login', async (req, res) => {
         const jwt = require('jsonwebtoken');
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
-        res.json({ token, user: { id: user._id, name, email } });
+        res.json({
+            token,
+            user: { id: user._id, name, email }
+        });
     } catch (error) {
         console.error('Login error:', error);
         res.status(500).json({ message: 'Server error' });
