@@ -1,7 +1,6 @@
 ﻿const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
-const serverless = require('serverless-http');
 
 const app = express();
 
@@ -11,39 +10,70 @@ app.use(cors({
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token']
 }));
+
 app.use(express.json());
 
-let cachedDb = null;
+// MongoDB Connection
+mongoose.connect(process.env.MONGODB_URI)
+    .then(() => console.log('MongoDB Connected'))
+    .catch(err => console.log('MongoDB Error:', err.message));
 
-const connectDB = async () => {
-    if (cachedDb && mongoose.connection.readyState === 1) return cachedDb;
+// ============ AUTH HANDLERS ============
+app.post('/api/auth/register', async (req, res) => {
     try {
-        await mongoose.connect(process.env.MONGODB_URI, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
+        const { name, email, password } = req.body;
+        if (!name || !email || !password) {
+            return res.status(400).json({ message: 'All fields required' });
+        }
+
+        const User = require('../server/models/User');
+        let user = await User.findOne({ email });
+        if (user) return res.status(400).json({ message: 'User already exists' });
+
+        user = new User({ name, email, password });
+        await user.save();
+
+        const jwt = require('jsonwebtoken');
+        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+        res.status(201).json({
+            token,
+            user: { id: user._id, name, email }
         });
-        cachedDb = mongoose.connection;
-        console.log('MongoDB Connected');
-        return cachedDb;
-    } catch (err) {
-        console.error('MongoDB Error:', err.message);
-        throw err;
-    }
-};
-
-app.use(async (req, res, next) => {
-    try {
-        await connectDB();
-        next();
-    } catch (err) {
-        res.status(500).json({ message: 'Database connection failed' });
+    } catch (error) {
+        console.error('Register error:', error);
+        res.status(500).json({ message: 'Server error' });
     }
 });
 
-app.use('/api/auth', require('./server/routes/auth'));
-app.use('/api/resume', require('./server/routes/resume'));
-app.use('/api/ai', require('./server/routes/ai'));
+app.post('/api/auth/login', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        if (!email || !password) {
+            return res.status(400).json({ message: 'Email and password required' });
+        }
 
+        const User = require('../server/models/User');
+        const user = await User.findOne({ email });
+        if (!user) return res.status(400).json({ message: 'Invalid credentials' });
+
+        const isMatch = await user.matchPassword(password);
+        if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
+
+        const jwt = require('jsonwebtoken');
+        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+        res.json({
+            token,
+            user: { id: user._id, name, email }
+        });
+    } catch (error) {
+        console.error('Login error:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// ============ OTHER ROUTES ============
 app.get('/api/test', (req, res) => {
     res.json({ message: 'API is working!' });
 });
@@ -52,14 +82,4 @@ app.get('/health', (req, res) => {
     res.status(200).json({ status: 'OK' });
 });
 
-app.get('/', (req, res) => {
-    res.json({ message: 'ResumeForge API on Vercel!' });
-});
-
-app.use((err, req, res, next) => {
-    console.error('Error:', err.message);
-    res.status(500).json({ message: 'Something went wrong!' });
-});
-
 module.exports = app;
-module.exports.handler = serverless(app);
