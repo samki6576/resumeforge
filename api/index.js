@@ -1,6 +1,7 @@
 ﻿const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
+const serverless = require('serverless-http');
 
 const app = express();
 
@@ -13,67 +14,37 @@ app.use(cors({
 
 app.use(express.json());
 
-// MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI)
-    .then(() => console.log('MongoDB Connected'))
-    .catch(err => console.log('MongoDB Error:', err.message));
-
-// ============ AUTH HANDLERS ============
-app.post('/api/auth/register', async (req, res) => {
-    try {
-        const { name, email, password } = req.body;
-        if (!name || !email || !password) {
-            return res.status(400).json({ message: 'All fields required' });
-        }
-
-        const User = require('../server/models/User');
-        let user = await User.findOne({ email });
-        if (user) return res.status(400).json({ message: 'User already exists' });
-
-        user = new User({ name, email, password });
-        await user.save();
-
-        const jwt = require('jsonwebtoken');
-        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-
-        res.status(201).json({
-            token,
-            user: { id: user._id, name, email }
-        });
-    } catch (error) {
-        console.error('Register error:', error);
-        res.status(500).json({ message: 'Server error' });
+const connectDB = async () => {
+    if (mongoose.connection.readyState >= 1) {
+        return mongoose.connection;
     }
+
+    if (!process.env.MONGODB_URI) {
+        console.error('MONGODB_URI is not set');
+        return null;
+    }
+
+    try {
+        await mongoose.connect(process.env.MONGODB_URI, {
+            serverSelectionTimeoutMS: 10000
+        });
+        console.log('MongoDB Connected');
+        return mongoose.connection;
+    } catch (err) {
+        console.error('MongoDB Error:', err.message);
+        return null;
+    }
+};
+
+app.use(async (req, res, next) => {
+    await connectDB();
+    next();
 });
 
-app.post('/api/auth/login', async (req, res) => {
-    try {
-        const { email, password } = req.body;
-        if (!email || !password) {
-            return res.status(400).json({ message: 'Email and password required' });
-        }
+app.use('/api/auth', require('../server/routes/auth'));
+app.use('/api/resume', require('../server/routes/resume'));
+app.use('/api/ai', require('../server/routes/ai'));
 
-        const User = require('../server/models/User');
-        const user = await User.findOne({ email });
-        if (!user) return res.status(400).json({ message: 'Invalid credentials' });
-
-        const isMatch = await user.matchPassword(password);
-        if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
-
-        const jwt = require('jsonwebtoken');
-        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-
-        res.json({
-            token,
-            user: { id: user._id, name, email }
-        });
-    } catch (error) {
-        console.error('Login error:', error);
-        res.status(500).json({ message: 'Server error' });
-    }
-});
-
-// ============ OTHER ROUTES ============
 app.get('/api/test', (req, res) => {
     res.json({ message: 'API is working!' });
 });
@@ -82,4 +53,9 @@ app.get('/health', (req, res) => {
     res.status(200).json({ status: 'OK' });
 });
 
-module.exports = app;
+app.use((err, req, res, next) => {
+    console.error('Error:', err.message);
+    res.status(500).json({ message: 'Something went wrong!' });
+});
+
+module.exports = serverless(app);
