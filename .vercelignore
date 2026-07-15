@@ -1,7 +1,7 @@
 ﻿node_modules/
 .env
 *.log
-server.js
+/server.js
 Procfile
 Dockerfile
 health-check.js
