@@ -38,7 +38,7 @@ app.post('/api/auth/register', async (req, res) => {
 
         res.status(201).json({
             token,
-            user: { id: user._id, name, email }
+            user: { id: user._id, name: user.name, email: user.email }
         });
     } catch (error) {
         console.error('Register error:', error);
@@ -46,6 +46,7 @@ app.post('/api/auth/register', async (req, res) => {
     }
 });
 
+// ============ FIXED LOGIN HANDLER ============
 app.post('/api/auth/login', async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -65,11 +66,36 @@ app.post('/api/auth/login', async (req, res) => {
 
         res.json({
             token,
-            user: { id: user._id, name, email }
+            user: { 
+                id: user._id, 
+                name: user.name,  // <-- FIXED: user.name from database
+                email: user.email 
+            }
         });
     } catch (error) {
         console.error('Login error:', error);
         res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// ============ ADD /api/auth/me ENDPOINT ============
+app.get('/api/auth/me', async (req, res) => {
+    try {
+        // Get token from header (supports both formats)
+        const token = (req.header('Authorization') || '').replace('Bearer ', '') || req.header('x-auth-token');
+        if (!token) return res.status(401).json({ message: 'No token provided' });
+
+        const jwt = require('jsonwebtoken');
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+        const User = require('../server/models/User');
+        const user = await User.findById(decoded.id).select('-password');
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        res.json(user);
+    } catch (error) {
+        console.error('Auth/me error:', error);
+        res.status(401).json({ message: 'Invalid or expired token' });
     }
 });
 
