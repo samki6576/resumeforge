@@ -13,10 +13,40 @@ app.use(cors({
 
 app.use(express.json());
 
-// MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI)
-    .then(() => console.log('MongoDB Connected'))
-    .catch(err => console.log('MongoDB Error:', err.message));
+// ============ MONGODB CONNECTION WITH CACHING ============
+let isConnected = false;
+
+async function connectDB() {
+    if (isConnected && mongoose.connection.readyState === 1) {
+        console.log('MongoDB already connected');
+        return;
+    }
+    try {
+        console.log('Connecting to MongoDB...');
+        await mongoose.connect(process.env.MONGODB_URI, {
+            serverSelectionTimeoutMS: 8000,
+        });
+        isConnected = true;
+        console.log('MongoDB Connected Successfully');
+    } catch (err) {
+        console.error('MongoDB Connection Error:', err.message);
+        throw err;
+    }
+}
+
+// ============ MIDDLEWARE: Wait for DB Connection ============
+app.use(async (req, res, next) => {
+    try {
+        await connectDB();
+        next();
+    } catch (err) {
+        console.error('DB connection error:', err.message);
+        res.status(503).json({ 
+            message: 'Database unavailable, please try again',
+            error: err.message
+        });
+    }
+});
 
 // ============ AUTH HANDLERS ============
 app.post('/api/auth/register', async (req, res) => {
@@ -46,7 +76,6 @@ app.post('/api/auth/register', async (req, res) => {
     }
 });
 
-// ============ FIXED LOGIN HANDLER ============
 app.post('/api/auth/login', async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -68,7 +97,7 @@ app.post('/api/auth/login', async (req, res) => {
             token,
             user: { 
                 id: user._id, 
-                name: user.name,  // <-- FIXED: user.name from database
+                name: user.name,
                 email: user.email 
             }
         });
@@ -78,10 +107,8 @@ app.post('/api/auth/login', async (req, res) => {
     }
 });
 
-// ============ ADD /api/auth/me ENDPOINT ============
 app.get('/api/auth/me', async (req, res) => {
     try {
-        // Get token from header (supports both formats)
         const token = (req.header('Authorization') || '').replace('Bearer ', '') || req.header('x-auth-token');
         if (!token) return res.status(401).json({ message: 'No token provided' });
 
